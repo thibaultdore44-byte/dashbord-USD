@@ -18,7 +18,7 @@ def charger_donnees_uk():
         'chomage': fred.get_series('LRHUTTTTGBM156S'),
         'pib': fred.get_series('CLVMNACSCAB1GQUK').pct_change(periods=4) * 100,
     }
-date_limite = pd.Timestamp.now() - pd.DateOffset(years=5)
+    date_limite = pd.Timestamp.now() - pd.DateOffset(years=5)
     return {k: v[v.index >= date_limite] for k, v in data.items()}
 
 d = charger_donnees_uk()
@@ -30,7 +30,7 @@ fig = make_subplots(rows=2, cols=2, subplot_titles=(
 
 couleurs = ['#6C63FF', '#FFD166', '#00D4AA', '#FF6B6B']
 cles = ['inflation', 'taux_boe', 'chomage', 'pib']
-positions = [(1,1),(1,2),(2,1),(2,2)]
+positions = [(1, 1), (1, 2), (2, 1), (2, 2)]
 
 for cle, couleur, (r, c) in zip(cles, couleurs, positions):
     serie = d[cle]
