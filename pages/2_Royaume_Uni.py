@@ -14,9 +14,9 @@ fred = Fred(api_key=st.secrets["FRED_API_KEY"])
 def charger_donnees_uk():
     data = {
         'inflation': fred.get_series('GBRCPIALLMINMEI').pct_change(periods=12) * 100,
-        'taux_boe': fred.get_series('BOERUKM'),
+        'taux_boe': fred.get_series('IRLTLT01GBM156N'),
         'chomage': fred.get_series('LRHUTTTTGBM156S'),
-        'pib': fred.get_series('CLVMNACSCAB1GQUK').pct_change(periods=4) * 100,
+        'pib': fred.get_series('NGDPRSAXDCGBQ').pct_change(periods=4) * 100,
     }
     date_limite = pd.Timestamp.now() - pd.DateOffset(years=5)
     return {k: v[v.index >= date_limite] for k, v in data.items()}
@@ -24,7 +24,7 @@ def charger_donnees_uk():
 d = charger_donnees_uk()
 
 fig = make_subplots(rows=2, cols=2, subplot_titles=(
-    'Inflation CPI (%)', 'Taux directeur BoE (%)',
+    'Inflation CPI (%)', 'Taux 10 ans UK (%)',
     'Chômage (%)', 'PIB variation (%)'
 ))
 
