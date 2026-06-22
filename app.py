@@ -2,6 +2,7 @@ import streamlit as st
 from fredapi import Fred
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import pandas as pd   # ← AJOUT
 
 st.set_page_config(page_title="Dashboard Macro", layout="wide", page_icon="📊")
 st.title("🇺🇸 Dashboard Macroéconomique - États-Unis")
@@ -22,7 +23,9 @@ def charger_donnees_us():
         'indus': fred.get_series('INDPRO').pct_change(periods=12) * 100,
         'confiance': fred.get_series('UMCSENT'),
     }
-    return {k: v.last('5Y') for k, v in data.items()}
+    # Filtrer les 5 dernières années (méthode compatible pandas récent)
+    date_limite = pd.Timestamp.now() - pd.DateOffset(years=5)
+    return {k: v[v.index >= date_limite] for k, v in data.items()}
 
 d = charger_donnees_us()
 
