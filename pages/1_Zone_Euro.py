@@ -2,6 +2,7 @@ import streamlit as st
 from fredapi import Fred
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import pandas as pd
 
 st.set_page_config(page_title="Zone Euro", layout="wide", page_icon="🇪🇺")
 st.title("🇪🇺 Dashboard Macroéconomique - Zone Euro")
@@ -17,7 +18,8 @@ def charger_donnees_euro():
         'chomage': fred.get_series('LRHUTTTTEZM156S'),
         'pib': fred.get_series('CLVMNACSCAB1GQEA19').pct_change(periods=4) * 100,
     }
-    return {k: v.last('5Y') for k, v in data.items()}
+date_limite = pd.Timestamp.now() - pd.DateOffset(years=5)
+    return {k: v[v.index >= date_limite] for k, v in data.items()}
 
 d = charger_donnees_euro()
 
