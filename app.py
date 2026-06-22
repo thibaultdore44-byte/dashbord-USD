@@ -3,70 +3,47 @@ from fredapi import Fred
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-# Configuration de la page
-st.set_page_config(page_title="Dashboard Macro US", layout="wide")
-st.title("📊 Dashboard Macroéconomique US")
+st.set_page_config(page_title="Dashboard Macro", layout="wide", page_icon="📊")
+st.title("🇺🇸 Dashboard Macroéconomique - États-Unis")
+st.caption("Données en temps réel via FRED (Federal Reserve)")
 
-# Ta clé API (on verra comment la sécuriser à l'étape 4)
 fred = Fred(api_key=st.secrets["FRED_API_KEY"])
 
-# Fonction qui récupère et met en cache les données (évite de recharger à chaque fois)
-@st.cache_data(ttl=3600)  # garde les données 1h en mémoire
-def charger_donnees():
-    cpi = fred.get_series('CPIAUCSL').pct_change(periods=12) * 100
-    core_cpi = fred.get_series('CPILFESL').pct_change(periods=12) * 100
-    chomage = fred.get_series('UNRATE')
-    taux_fed = fred.get_series('FEDFUNDS')
-    pib = fred.get_series('GDP').pct_change(periods=4) * 100
-    retail = fred.get_series('RSAFS').pct_change(periods=12) * 100
-    manu = fred.get_series('IPMAN').pct_change(periods=12) * 100
-    indus = fred.get_series('INDPRO').pct_change(periods=12) * 100
-    confiance = fred.get_series('UMCSENT')
-    return cpi, core_cpi, chomage, taux_fed, pib, retail, manu, indus, confiance
+@st.cache_data(ttl=3600)
+def charger_donnees_us():
+    data = {
+        'cpi': fred.get_series('CPIAUCSL').pct_change(periods=12) * 100,
+        'core_cpi': fred.get_series('CPILFESL').pct_change(periods=12) * 100,
+        'chomage': fred.get_series('UNRATE'),
+        'taux_fed': fred.get_series('FEDFUNDS'),
+        'pib': fred.get_series('GDP').pct_change(periods=4) * 100,
+        'retail': fred.get_series('RSAFS').pct_change(periods=12) * 100,
+        'manu': fred.get_series('IPMAN').pct_change(periods=12) * 100,
+        'indus': fred.get_series('INDPRO').pct_change(periods=12) * 100,
+        'confiance': fred.get_series('UMCSENT'),
+    }
+    return {k: v.last('5Y') for k, v in data.items()}
 
-# Charger les données
-cpi, core_cpi, chomage, taux_fed, pib, retail, manu, indus, confiance = charger_donnees()
+d = charger_donnees_us()
 
-import pandas as pd
-
-def garder_5_ans(series):
-    series.index = pd.to_datetime(series.index)
-    date_limite = series.index.max() - pd.DateOffset(years=5)
-    return series.loc[series.index >= date_limite]
-
-cpi = garder_5_ans(cpi)
-core_cpi = garder_5_ans(core_cpi)
-chomage = garder_5_ans(chomage)
-taux_fed = garder_5_ans(taux_fed)
-pib = garder_5_ans(pib)
-retail = garder_5_ans(retail)
-manu = garder_5_ans(manu)
-indus = garder_5_ans(indus)
-confiance = garder_5_ans(confiance)
-
-# Créer la grille 3x3
 fig = make_subplots(rows=3, cols=3, subplot_titles=(
     'Inflation CPI (%)', 'Core CPI (%)', 'Chômage (%)',
     'Taux Fed (%)', 'PIB variation (%)', 'Retail Sales (%)',
     'Prod. Manufacturière (%)', 'Prod. Industrielle (%)', 'Confiance Conso (indice)'
 ))
 
-fig.add_trace(go.Scatter(x=cpi.index, y=cpi.values, line=dict(color='#6C63FF', width=2)), row=1, col=1)
-fig.add_trace(go.Scatter(x=core_cpi.index, y=core_cpi.values, line=dict(color='#9C88FF', width=2)), row=1, col=2)
-fig.add_trace(go.Scatter(x=chomage.index, y=chomage.values, line=dict(color='#00D4AA', width=2)), row=1, col=3)
-fig.add_trace(go.Scatter(x=taux_fed.index, y=taux_fed.values, line=dict(color='#FFD166', width=2)), row=2, col=1)
-fig.add_trace(go.Scatter(x=pib.index, y=pib.values, line=dict(color='#FF6B6B', width=2)), row=2, col=2)
-fig.add_trace(go.Scatter(x=retail.index, y=retail.values, line=dict(color='#4ECDC4', width=2)), row=2, col=3)
-fig.add_trace(go.Scatter(x=manu.index, y=manu.values, line=dict(color='#FF9F43', width=2)), row=3, col=1)
-fig.add_trace(go.Scatter(x=indus.index, y=indus.values, line=dict(color='#EE5A6F', width=2)), row=3, col=2)
-fig.add_trace(go.Scatter(x=confiance.index, y=confiance.values, line=dict(color='#A29BFE', width=2)), row=3, col=3)
+couleurs = ['#6C63FF', '#9C88FF', '#00D4AA', '#FFD166', '#FF6B6B', '#4ECDC4', '#FF9F43', '#EE5A6F', '#A29BFE']
+cles = ['cpi', 'core_cpi', 'chomage', 'taux_fed', 'pib', 'retail', 'manu', 'indus', 'confiance']
+positions = [(1,1),(1,2),(1,3),(2,1),(2,2),(2,3),(3,1),(3,2),(3,3)]
+
+for cle, couleur, (r, c) in zip(cles, couleurs, positions):
+    serie = d[cle]
+    fig.add_trace(go.Scatter(x=serie.index, y=serie.values,
+                  line=dict(color=couleur, width=2)), row=r, col=c)
 
 fig.update_layout(template='plotly_dark', height=900, showlegend=False)
-
-# Afficher dans la page web
 st.plotly_chart(fig, use_container_width=True)
 
-# Bouton pour rafraîchir les données
 if st.button("🔄 Rafraîchir les données"):
     st.cache_data.clear()
     st.rerun()
