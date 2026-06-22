@@ -27,11 +27,22 @@ def charger_donnees():
 # Charger les données
 cpi, core_cpi, chomage, taux_fed, pib, retail, manu, indus, confiance = charger_donnees()
 
-# Garder 5 ans
-cpi, core_cpi = cpi.last('5Y'), core_cpi.last('5Y')
-chomage, taux_fed = chomage.last('5Y'), taux_fed.last('5Y')
-pib, retail = pib.last('5Y'), retail.last('5Y')
-manu, indus, confiance = manu.last('5Y'), indus.last('5Y'), confiance.last('5Y')
+import pandas as pd
+
+def garder_5_ans(series):
+    series.index = pd.to_datetime(series.index)
+    date_limite = series.index.max() - pd.DateOffset(years=5)
+    return series.loc[series.index >= date_limite]
+
+cpi = garder_5_ans(cpi)
+core_cpi = garder_5_ans(core_cpi)
+chomage = garder_5_ans(chomage)
+taux_fed = garder_5_ans(taux_fed)
+pib = garder_5_ans(pib)
+retail = garder_5_ans(retail)
+manu = garder_5_ans(manu)
+indus = garder_5_ans(indus)
+confiance = garder_5_ans(confiance)
 
 # Créer la grille 3x3
 fig = make_subplots(rows=3, cols=3, subplot_titles=(
