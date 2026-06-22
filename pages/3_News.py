@@ -30,7 +30,8 @@ def recuperer_news():
     cle = st.secrets["NEWS_API_KEY"]
     url = "https://newsapi.org/v2/everything"
     params = {
-        'q': 'forex OR inflation OR "central bank" OR "interest rate" OR "federal reserve" OR ECB',
+        'q': '"interest rate" OR "central bank" OR "monetary policy" OR "Federal Reserve" OR "ECB" OR "Bank of England" OR "inflation rate" OR "rate decision" OR "rate cut" OR "rate hike" OR hawkish OR dovish OR "jobs report" OR "GDP growth"',
+        'domains': 'reuters.com,bloomberg.com,cnbc.com,marketwatch.com,investing.com,forexlive.com,fxstreet.com',
         'language': 'en',
         'sortBy': 'publishedAt',
         'pageSize': 30,
