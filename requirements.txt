@@ -2,3 +2,5 @@ streamlit
 fredapi
 plotly
 pandas
+requests
+deep-translator
